@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CORE Session Recommender</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="bg-layer" aria-hidden="true">
+        <div class="orb orb-1"></div>
+        <div class="orb orb-2"></div>
+        <div class="orb orb-3"></div>
+        <div class="grid-overlay"></div>
+    </div>
+
+    <main class="container">
+        <header class="header">
+            <div class="logo">
+                <span class="logo-mark" aria-hidden="true">◈</span>
+                <span class="logo-text">CORE</span>
+            </div>
+            <p class="tagline">Representation-Consistent Session Recommendation</p>
+        </header>
+
+        <div class="panels">
+            <!-- Catalog Panel -->
+            <section class="panel catalog-panel">
+                <div class="panel-header">
+                    <h2 class="panel-title">Catalog</h2>
+                    <span class="panel-badge">50 items</span>
+                </div>
+                <div class="catalog-grid" id="catalogGrid" role="list"></div>
+            </section>
+
+            <!-- Session Panel -->
+            <section class="panel session-panel">
+                <div class="panel-header">
+                    <h2 class="panel-title">Current Session</h2>
+                    <button class="btn-reset" id="resetBtn" aria-label="Clear session">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M3 6h18M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/>
+                        </svg>
+                        Clear
+                    </button>
+                </div>
+                <div class="session-sequence" id="sessionSequence" role="list" aria-live="polite">
+                    <p class="session-empty">Click items from catalog to start a session</p>
+                </div>
+                <div class="session-meta">
+                    <span class="meta-item">
+                        <span class="meta-label">Length</span>
+                        <span class="meta-value" id="sessionLength">0</span>
+                    </span>
+                </div>
+            </section>
+
+            <!-- Recommendations Panel -->
+            <section class="panel recommendations-panel">
+                <div class="panel-header">
+                    <h2 class="panel-title">Recommendations</h2>
+                    <span class="panel-badge" id="modelBadge">CORE-trm</span>
+                </div>
+                <div class="rec-list" id="recList" role="list">
+                    <div class="rec-empty">
+                        <svg class="rec-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                            <circle cx="11" cy="11" r="8"/>
+                            <path d="M21 21l-4.35-4.35"/>
+                        </svg>
+                        <p>Start a session to see recommendations</p>
+                    </div>
+                </div>
+                <div class="rec-loading" id="recLoading" hidden>
+                    <div class="spinner"></div>
+                    <span>Computing recommendations...</span>
+                </div>
+            </section>
+        </div>
+
+        <footer class="footer">
+            <p>CORE: Simple and Effective Session-based Recommendation within Consistent Representation Space (SIGIR 2022)</p>
+        </footer>
+    </main>
+
+    <script src="app.js"></script>
+</body>
+</html>
