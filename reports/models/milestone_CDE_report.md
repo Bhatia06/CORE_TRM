@@ -1,7 +1,7 @@
 # Milestone C/D/E Report: Neural Models (CORE-ave & CORE-trm)
 
 **Date:** 2026-10-30  
-**Status:** ✅ COMPLETE (1-epoch test runs)  
+**Status:** COMPLETE (1-epoch validation runs)  
 **Scripts:** 
 - `src/data/datasets.py` — PyTorch Dataset/DataLoader
 - `src/training/config.py` — Hyperparameter configuration
@@ -13,9 +13,9 @@
 
 ## Summary
 
-Implemented both CORE variants from the paper and validated them with 1-epoch training runs. Both models **significantly outperform all baselines** after just 1 epoch.
+Implemented both CORE variants from the paper and validated them with 1-epoch training runs. Both models significantly outperform all baselines after just 1 epoch.
 
-### What Was Built
+### Components Built
 
 | Component | File | Key Features |
 |-----------|------|--------------|
@@ -30,6 +30,7 @@ Implemented both CORE variants from the paper and validated them with 1-epoch tr
 ## Model Architectures
 
 ### CORE-ave (Mean Pooling)
+
 ```
 Item Embeddings [vocab=34644, dim=100]
        │
@@ -45,9 +46,11 @@ Cosine Similarity / Temperature  →  Scores [batch, vocab]
        ▼
 InfoNCE Loss with Margin (m=0.07)
 ```
+
 **Parameters:** 3,464,401 (essentially just the embedding table)
 
 ### CORE-trm (Transformer Attention Weights)
+
 ```
 Item Embeddings [vocab=34644, dim=100]
        │
@@ -72,6 +75,7 @@ session_emb = Σ(α_i × original_item_emb_i)  ◄── KEY: Uses ORIGINAL embe
        ▼
 L2 Normalize → Cosine / Temp → Scores → InfoNCE + Margin
 ```
+
 **Parameters:** 3,631,702 (~167K extra for Transformer)
 
 ---
@@ -79,6 +83,7 @@ L2 Normalize → Cosine / Temp → Scores → InfoNCE + Margin
 ## Training Results (1 Epoch, Batch=1024, Seed=42)
 
 ### CORE-ave
+
 | Metric | Value | Best Baseline | Improvement |
 |--------|-------|---------------|-------------|
 | **Test Recall@20** | **0.3986** | 0.3415 (Transition) | **+16.7%** |
@@ -88,6 +93,7 @@ L2 Normalize → Cosine / Temp → Scores → InfoNCE + Margin
 | Train Time | 75s | — | — |
 
 ### CORE-trm
+
 | Metric | Value | Best Baseline | Improvement |
 |--------|-------|---------------|-------------|
 | **Test Recall@20** | **0.4252** | 0.3415 (Transition) | **+24.5%** |
@@ -97,6 +103,7 @@ L2 Normalize → Cosine / Temp → Scores → InfoNCE + Margin
 | Train Time | 132s | — | — |
 
 ### Comparison
+
 | Aspect | CORE-ave | CORE-trm |
 |--------|----------|----------|
 | **Recall@20** | 0.3986 | **0.4252** |
@@ -121,6 +128,7 @@ L2 Normalize → Cosine / Temp → Scores → InfoNCE + Margin
 7. **Session Embedding L2 Normalized**: For cosine similarity
 
 ### Training Configuration
+
 ```python
 # Shared
 embedding_dim = 100
@@ -143,6 +151,7 @@ patience = 5 on val MRR@20
 ```
 
 ### Mixed Precision Fix
+
 - Used `-1e4` instead of `-1e9` for padding mask in half-precision to avoid overflow
 - AMP (autocast + GradScaler) enabled for speed
 
@@ -158,21 +167,21 @@ patience = 5 on val MRR@20
 | Session-POP | 0.2132 | 0.1458 |
 | POP | 0.0089 | 0.0023 |
 
-**Both neural models beat all baselines after just 1 epoch!**
+Both neural models beat all baselines after just 1 epoch.
 
 ---
 
-## Acceptance Checks — All PASSED ✅
+## Acceptance Checks — All PASSED
 
 | Check | CORE-ave | CORE-trm |
 |-------|----------|----------|
-| Padded values don't affect session embedding | ✅ (masked mean) | ✅ (masked softmax) |
-| Loss decreases on overfit subset | ✅ (1 epoch) | ✅ (1 epoch) |
-| Validation metrics exceed baselines | ✅ | ✅ |
-| Weights sum to 1 over valid positions | N/A | ✅ (verified: sum=1.0) |
-| Padded positions receive zero weight | N/A | ✅ (verified: α=0 at padding) |
-| Output session vector uses original item embeddings | N/A | ✅ (explicit in code) |
-| 3-seed reproducibility framework | ✅ | ✅ |
+| Padded values don't affect session embedding | PASSED (masked mean) | PASSED (masked softmax) |
+| Loss decreases on overfit subset | PASSED (1 epoch) | PASSED (1 epoch) |
+| Validation metrics exceed baselines | PASSED | PASSED |
+| Weights sum to 1 over valid positions | N/A | PASSED (verified: sum=1.0) |
+| Padded positions receive zero weight | N/A | PASSED (verified: α=0 at padding) |
+| Output session vector uses original item embeddings | N/A | PASSED (explicit in code) |
+| 3-seed reproducibility framework | PASSED | PASSED |
 
 ---
 
@@ -203,75 +212,23 @@ checkpoints/core_trm/
 ### Reports
 ```
 reports/models/
+  core_ave_summary.json
+  core_trm_summary.json
   milestone_CDE_report.md      # THIS FILE
-```
-
----
-
-## What This Means for Next Steps
-
-### ✅ What You CAN Do Now
-
-| Task | Status |
-|------|--------|
-| **Full 3-seed training** (100 epochs with early stopping) | Ready — just run with `--seeds 42 123 456 --epochs 100` |
-| **Hyperparameter tuning** (margin grid, dropout grid) | Config supports it |
-| **Grouped evaluation** (prefix length, target popularity) | `evaluate_model()` supports it |
-| **Error analysis** (inspect correct/incorrect predictions) | Checkpoints saved |
-| **API + Frontend** (Milestone 11) | Model checkpoints ready |
-
-### ⚠️ What Needs More Work (Full Experiment)
-
-| Task | Effort |
-|------|--------|
-| **Full 3-seed runs** (100 epochs each) | ~2-3 hours GPU time |
-| **Margin/dropout grid search** | Paper: margin∈{0.01,0.05,0.07,0.1,1}, dropout∈{0,0.1,0.2} |
-| **Efficiency metrics** (train time/epoch, inference latency) | Add timing hooks |
-| **Final comparison tables** (plan §9) | After full runs |
-| **Qualitative analysis** (15 correct/incorrect cases) | After full runs |
-
----
-
-## Quick Reference: Running Full Experiment
-
-```bash
-# CORE-ave full run (3 seeds, early stopping)
-python -m src.training.train --model core_ave --seeds 42 123 456 --epochs 100 --batch-size 2048
-
-# CORE-trm full run
-python -m src.training.train --model core_trm --seeds 42 123 456 --epochs 100 --batch-size 2048
-
-# Hyperparameter sweep (example)
-python -m src.training.train --model core_ave --seeds 42 --epochs 100 --margin 0.05 --dropout 0.2
-```
-
-```python
-# Load trained model for inference
-from src.models.core_ave import create_core_ave
-from src.data.datasets import SessionDataset
-import torch
-
-model = create_core_ave(vocab_size=34644)
-model.load_state_dict(torch.load("checkpoints/core_ave/core_ave_seed42_best.pt")["model_state_dict"])
-model.eval()
-
-# Recommend
-dataset = SessionDataset("data/processed/test.parquet", "data/processed/item_mapping.json")
-prefix, _, plen = dataset[0]  # Get one test sample
-top20 = model.recommend(prefix.unsqueeze(0), plen.unsqueeze(0), k=20)
 ```
 
 ---
 
 ## Notes & Caveats
 
-1. **1-epoch results are preliminary** — Full training with early stopping (patience=5) will likely improve further
-2. **CORE-trm is ~1.75x slower per epoch** — But achieves better metrics; paper reports 5x slower than CORE-ave (we're faster due to smaller batch)
-3. **Temperature learns automatically** — No manual tuning needed
-4. **Margin=0.07** — Paper's best for Diginetica; grid search recommended
-5. **Item dropout=0.2 for CORE-trm** — Paper finds 0.1-0.2 optimal; higher hurts
-6. **Left-padding convention** — Valid positions at end of sequence; masks handle correctly
+1. **1-epoch results are preliminary** — Full training with early stopping (patience=5) will likely improve further.
 
----
+2. **CORE-trm is ~1.75x slower per epoch** — But achieves better metrics; paper reports 5x slower than CORE-ave (we're faster due to smaller batch).
 
-*Report generated from Milestone C/D/E pipeline. For full experiment, run 3-seed training with early stopping.*
+3. **Temperature learns automatically** — No manual tuning needed.
+
+4. **Margin=0.07** — Paper's best for Diginetica; grid search recommended.
+
+5. **Item dropout=0.2 for CORE-trm** — Paper finds 0.1-0.2 optimal; higher hurts.
+
+6. **Left-padding convention** — Valid positions at end of sequence; masks handle correctly.
